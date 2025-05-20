@@ -23,14 +23,13 @@ const long double EPSILON = std::sqrt(std::numeric_limits<long double>::epsilon(
 class realFx
 {
 private:
+		/* prerequisites */
 
 	typedef std::function<long double(long double&)> real_fx_type;
-
 
 		/* member variables */
 
 	real_fx_type foo;
-
 
 		/* member functions */
 
@@ -90,7 +89,6 @@ public:
 	// destructor
 	~realFx() {}
 
-
 		/* member functions */
 	
 	// purpose: finds the derivative function
@@ -106,6 +104,9 @@ public:
 		typename = std::enable_if_t<std::is_convertible_v<T, long double>>>
 	long double derive_at(const T&);
 
+	// purpose: finds an antiderivative
+	// requires: nothing, but the x-intercept can be passed through
+	// returns: a realFx i.e. the integral
 	template <typename T,
 		typename = std::enable_if_t<std::is_convertible_v<T, long double>>>
 	realFx integral(const T & = 0.0l);
@@ -138,6 +139,49 @@ public:
 		typename = std::enable_if_t<std::is_convertible_v<T, long double>>>
 	bool limit_exists_at(const T&, const long double& = EPSILON);
 
+	// purpose: reflects the function about the x-axis
+	// requires: nothing
+	// returns: a new function
+	realFx reflectX();
+
+	// purpose: reflects the function about the y-axis
+	// requires: nothing
+	// returns: a new function
+	realFx reflectY();
+
+	// purpose: scales a function in the x and y direction
+	// requires: a function and 2 scalars, cx and cy respectively
+	//	f(x / cx) * cy
+	// returns: a new function
+	realFx scale(long double, long double);
+
+	// purpose: scales a function in the x direction
+	// requires: a function and a scalar
+	//	f(x / c)
+	// returns: a new function
+	realFx scaleX(long double);
+
+	// purpose: scales a function in the y direction
+	// requires: a function and a scalar
+	//	f(x) * c
+	// returns a new function
+	realFx scaleY(long double);
+
+	// purpose: shifts a function in the x and y direction
+	// requires: a function and 2 scalars, dx and dy respectively
+	//	f(x - dx) + dy
+	// returns: a new function
+	realFx shift(long double, long double);
+
+	// purpose: shifts a function in the x direction
+	// requires: a function and a scalar
+	// returns: a new function
+	realFx shiftX(long double);
+
+	// purpose: shifts a function in the y direction
+	// requires: a function and a scalar
+	// returns: a new function
+	realFx shiftY(long double);
 
 		/* operators */
 
@@ -487,6 +531,92 @@ long double realFx::right_limit(const T& num, const long double& h)
 	eval += epsilon;
 
 	return foo(eval);
+}
+
+realFx realFx::reflectX()
+{
+	real_fx_type bar = [this](long double x) ->long double
+		{
+			return -1 * foo(x);
+		};
+
+	return realFx(bar);
+}
+
+realFx realFx::reflectY()
+{
+	real_fx_type bar = [this](long double x) ->long double
+		{
+			long double new_x = -1 * x;
+			return foo(new_x);
+		};
+
+	return realFx(bar);
+}
+
+realFx realFx::scale(long double cx, long double cy)
+{
+	real_fx_type bar = [this, &cx, &cy](long double x) -> long double
+		{
+			long double new_x = x / cx;
+			return cy * foo(new_x);
+		};
+
+	return realFx(bar);
+}
+
+realFx realFx::scaleX(long double c)
+{
+	real_fx_type bar = [this, &c](long double x) -> long double
+		{
+			long double new_x = x / c;
+			return foo(new_x);
+		};
+
+	return realFx(bar);
+}
+
+realFx realFx::scaleY(long double c)
+{
+	real_fx_type bar = [this, &c](long double x) -> long double
+		{
+			return c * foo(x);
+		};
+
+	return realFx(bar);
+}
+
+realFx realFx::shift(long double dx, long double dy)
+{
+	real_fx_type bar = [this, &dx, &dy](long double x) -> long double
+		{
+			long double new_x = x - dx;
+			return foo(new_x) + dy;
+		};
+
+	return realFx(bar);
+}
+
+
+realFx realFx::shiftX(long double dx)
+{
+	real_fx_type bar = [this, &dx](long double x) -> long double
+		{
+			long double new_x = x - dx;
+			return foo(new_x);
+		};
+
+	return realFx(bar);
+}
+
+realFx realFx::shiftY(long double dy)
+{
+	real_fx_type bar = [this, &dy](long double x) -> long double
+		{
+			return foo(x) + dy;
+		};
+
+	return realFx(bar);
 }
 
 
