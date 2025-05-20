@@ -21,7 +21,7 @@
     <ClInclude Include="realfx.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="calculator.hpp">
+    <ClInclude Include="expression.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -31,6 +31,11 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <Text Include="input.txt" />
+    <Text Include="prog1Data.txt">
+      <Filter>Resource Files</Filter>
+    </Text>
+    <Text Include="input.txt">
+      <Filter>Resource Files</Filter>
+    </Text>
   </ItemGroup>
 </Project>
