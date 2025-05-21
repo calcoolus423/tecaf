@@ -13,7 +13,8 @@ constexpr long double INF = std::numeric_limits<long double>::infinity();
 constexpr long double N_INF = -std::numeric_limits<long double>::infinity();
 
 // set the epsilon for each type
-const long double EPSILON = std::sqrt(std::numeric_limits<long double>::epsilon());
+const long double EPSILON = 
+	std::sqrt(std::numeric_limits<long double>::epsilon());
 
 
 // purpose: represents a real-valued function
@@ -476,7 +477,8 @@ bool realFx::limit_exists_at(const T& val, const long double& h)
 
 	// if the left and right limits are unequal
 	// and we have a valid limitting value
-	if (left != right && std::abs(h) > std::numeric_limits<long double>::epsilon())
+	if (left != right && 
+		std::abs(h) > std::numeric_limits<long double>::epsilon())
 	{
 		// recursive call
 		return limit_exists_at(val, h / 2.);
@@ -489,7 +491,8 @@ bool realFx::limit_exists_at(const T& val, const long double& h)
 	}
 	// if the limits are unequal
 	// and we've reached epsilon
-	else if (left != right && std::abs(h) <= std::numeric_limits<long double>::epsilon())
+	else if (left != right &&
+		std::abs(h) <= std::numeric_limits<long double>::epsilon())
 	{
 		return false;
 	}

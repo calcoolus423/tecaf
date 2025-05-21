@@ -11,6 +11,7 @@
 *   expressions, and evaluations, this library allows for user-creation and   *
 *   analysis of numerical/analystical functions.                              *
 *   This file mostly acts as a wrapper for other hpp files.                   *
+*	Written in C++20.
 \*****************************************************************************/
 
 #pragma once
