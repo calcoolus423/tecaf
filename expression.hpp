@@ -1,6 +1,7 @@
 #pragma once
 
 
+#include <array>
 #include <iostream>
 #include <map>
 #include <stack>
@@ -14,11 +15,16 @@ using std::string;
 
 	/* prototypes */
 
+// purpose: determines if a string can be expressed as a number
+// requires: a string
+// returns: a boolean
+bool isNumber(const std::string&);
+
 // purpose: evaluates a simple boolean expression
 // requires: an array of bools that has length 2, and a char that represents
 //	the operation to do
 // returns: a boolean i.e. the result of the expression
-bool eval_simple_boolExp(const bool[], const char&);
+bool eval_simple_boolExp(const bool[2], const char&);
 
 // purpose: evaluates a boolean expression
 // requires: a string i.e. the boolean expression in postfix notation
@@ -32,7 +38,6 @@ bool eval_boolExp(const string&);
 void getAndEval(stack<bool>&, const char&);
 
 // purpose: converts an expression of bools from infix to postfix notation
-//	using a while loop
 // requires: a string i.e. an expression in infix notation
 // returns: a string i.e. an expression on postfix notation
 string infix_to_postfix_bool(const string&);
@@ -44,16 +49,86 @@ string infix_to_postfix_bool(const string&);
 void compareAndPush(const char&, stack<char>&, string&);
 
 
+		/* classes */
+
+	/* Expression */
+
+// purpose: an abstract class that represents expressions
+// invariants: none
+// data members:
+//	'result' is a pointer to the expression's result
+//	'expression' is a string that represents the actual expression
+template <typename adt>
+class Expression
+{
+protected:
+
+		/* member variables */
+	
+	adt* result;
+
+	string expression;
+
+		/* member functions */
+
+	// purpose: evaluates an expression with two inputs
+	// requires: an array of two values to evaluate,
+	//	and a char i.e. the operator
+	// returns: an adt
+	virtual adt eval_simple_exp(
+		const std::array<adt, 2>&,
+		const char&
+	) const = 0;
+
+	// purpose: converts an expression from infix to postfix notation
+	// requires: a string i.e. an expression in infix notation
+	// returns: a string i.e. an expression in postfix notation
+	virtual string infix_to_postfix(const string&) const = 0;
+
+public:
+
+		/* member functions */
+
+	// purpose: evaluates the expression
+	// requires: nothing
+	// returns: an adt i.e. the result
+	virtual adt evaluate() const = 0;
+};
+
+
+class boolExp : public Expression<bool>
+{
+public:
+
+		/* constructors */
+
+	// default constructor
+	// sets the expression to the additive identity
+	boolExp();
+
+};
+
+		/* boolExp */
+
+	/* constructors */
+
+// set the expression to the additive identity
+boolExp::boolExp()
+{
+	expression = "0";
+	*result = false;
+}
+
 	/* definitions */
 
 /*****************************************************************************\
 *  Good news! We can finally be bees. This isn't your world, but we can be    *
-*  bees. This is good news. You can be a bee. You'll live like a bee — a pet! *
+*  bees. This is good news. You can be a bee. You'll live like a bee--a pet!  *
 *  A pet?                                                                     *
 *  A pet, Mark. This is good news! You'll live for thirty years!              *
 *  This is insane!                                                            *
 \*****************************************************************************/
-bool eval_simple_boolExp(const bool bee[], const char& be)
+bool eval_simple_boolExp(const bool bee[2], const char& be)
 {
 	try
 	{
@@ -102,13 +177,7 @@ bool eval_boolExp(const string& postfix)
 				vals.pop();
 				vals.push(!temp);
 				break;
-			case '&':
-				getAndEval(vals, symbol);
-				break;
-			case '|':
-				getAndEval(vals, symbol);
-				break;
-			case '^':
+			case '&': case '|': case '^':
 				getAndEval(vals, symbol);
 				break;
 			default:
@@ -174,9 +243,9 @@ string infix_to_postfix_bool(const string& infix)
 			case '0': postfix += '0'; break;
 			case '1': postfix += '1'; break;
 			case '~': ops.push(symbol); break;
-			case '^': compareAndPush(symbol, ops, postfix); break;
-			case '&': compareAndPush(symbol, ops, postfix); break;
-			case '|': compareAndPush(symbol, ops, postfix); break;
+			case '^': case '&': case '|':
+				compareAndPush(symbol, ops, postfix);
+				break;
 			case ' ': break;
 			default:
 				string errMsg = "";

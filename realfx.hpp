@@ -19,7 +19,8 @@ const long double EPSILON = std::sqrt(std::numeric_limits<long double>::epsilon(
 // purpose: represents a real-valued function
 // invariants: the function takes in a long double passed by reference
 //	and returns a long double by value
-// data members: foo is a functional object i.e. the representative function
+// data members:
+//	foo is a functional object i.e. the representative function
 class realFx
 {
 private:

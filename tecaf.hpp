@@ -10,7 +10,7 @@
 *   coding experience. Primarily centered around mathematical functions,      *
 *   expressions, and evaluations, this library allows for user-creation and   *
 *   analysis of numerical/analystical functions.                              *
-*                                                                             *
+*   This file mostly acts as a wrapper for other hpp files.                   *
 \*****************************************************************************/
 
 #pragma once
@@ -28,11 +28,6 @@ const long double E = std::exp(1);
 
 
 	/* prototypes */
-
-// purpose: determines if a string can be expressed as a number
-// requires: a string
-// returns: a boolean
-bool isNumber(const std::string&);
 
 // purpose: prints the data to the console and breaks the line
 // requires: anything that can be printed
