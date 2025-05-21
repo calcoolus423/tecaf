@@ -4,16 +4,23 @@
 
 using std::cout;
 using std::setw;
-using std::string;
+
+constexpr unsigned short COLUMN_WIDTH = 12;
 
 int main()
 {
 	string expression;
 
-	std::cin >> expression;
+	std::cout << ">> ";
+	std::getline(std::cin, expression);
 
-	boolExp_w(expression);
+	std::cout << expression << '\n';
+	std::cout << infix_to_postfix_bool(expression) << "\n";
 
-	cout << setw(5) << " " << "Input";
+	cout << setw(COLUMN_WIDTH) << std::left << "Input";
+	cout << setw(COLUMN_WIDTH) << std::left << "Output" << '\n';
+
+	cout << setw(COLUMN_WIDTH) << std::right << expression;
+	cout << setw(COLUMN_WIDTH) << std::right << infix_to_postfix_bool(expression);
 	return 0;
 }
