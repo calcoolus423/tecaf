@@ -12,26 +12,49 @@ using std::stack;
 using std::string;
 
 
-// purpose: evaluates a boolean expression
+	/* prototypes */
+
+// purpose: evaluates a simple boolean expression
 // requires: an array of bools that has length 2, and a char that represents
 //	the operation to do
 // returns: a boolean i.e. the result of the expression
-bool eval_boolExp(const bool[], const char&);
+bool eval_simple_boolExp(const bool[], const char&);
+
+// purpose: evaluates a boolean expression
+// requires: a string i.e. the boolean expression in postfix notation
+// returns: a boolean i.e. the result of the expression
+bool eval_boolExp(const string&);
+
+// purpose: a helper function for eval_boolExp, compares the top two booleans
+//	in the stack with an operator
+// requires: a stack of booleans, and a char i.e. the operator
+// returns: the evaluated expression
+void getAndEval(stack<bool>&, const char&);
 
 // purpose: converts an expression of bools from infix to postfix notation
+//	using a while loop
 // requires: a string i.e. an expression in infix notation
 // returns: a string i.e. an expression on postfix notation
-string infix_to_postfix(const string&);
+string infix_to_postfix_bool(const string&);
+
+// purpose: a helper function for infix_to_postfix, compares an operator with
+//	those already on the stack
+// requires: a char that represents the current operator, the stack of
+//	operators, and a string i.e. the current postfix expression
+void compareAndPush(const char&, stack<char>&, string&);
 
 
-bool eval_boolExp(const bool bee[], const char& be)
+	/* definitions */
+
+/*****************************************************************************\
+*  Good news! We can finally be bees. This isn't your world, but we can be    *
+*  bees. This is good news. You can be a bee. You'll live like a bee — a pet! *
+*  A pet?                                                                     *
+*  A pet, Mark. This is good news! You'll live for thirty years!              *
+*  This is insane!                                                            *
+\*****************************************************************************/
+bool eval_simple_boolExp(const bool bee[], const char& be)
 {
-	/*************************************************************************\
-	* Good news! We can finally be bees. This isn't your world, but we can    *
-	* be bees. This is good news. You can be a bee. You'll live like a bee—   *
-	* a pet! A pet? A pet, Mark. This is good news! You'll live for thirty    *
-	* years! This is insane!                                                  *
-	\*************************************************************************/
 	try
 	{
 		switch (be)
@@ -51,141 +74,110 @@ bool eval_boolExp(const bool bee[], const char& be)
 	catch (const std::invalid_argument& e)
 	{
 		std::cerr << e.what();
+		return bee[0];
 	}
 
 }
 
-// Dijkstra's shunting yard algorithm
+bool eval_boolExp(const string& postfix)
+{
+	bool temp;
+	stack<bool> vals;
+	string xpr = postfix;
+
+	if (postfix == "")
+	{
+		return false;
+	}
+	try
+	{
+		for (char& symbol : xpr)
+		{
+			switch (symbol)
+			{
+			case '0': vals.push(false); break;
+			case '1': vals.push(true); break;
+			case '~':
+				temp = vals.top();
+				vals.pop();
+				vals.push(!temp);
+				break;
+			case '&':
+				getAndEval(vals, symbol);
+				break;
+			case '|':
+				getAndEval(vals, symbol);
+				break;
+			case '^':
+				getAndEval(vals, symbol);
+				break;
+			default:
+				throw std::invalid_argument
+					("Invalid char in postfix expression\n");
+				break;
+			}
+
+		}
+
+		return vals.top();
+	}
+	catch (const std::invalid_argument& e)
+	{
+		std::cerr << e.what();
+		return false;
+	}
+
+}
+
+void getAndEval(stack<bool>& vals, const char& symbol)
+{
+	bool holder[2];
+
+	holder[0] = vals.top();
+	vals.pop();
+	holder[1] = vals.top();
+	vals.pop();
+	vals.push(eval_simple_boolExp(holder, symbol));
+}
+
+// Dijkstra's Shunting Yard Algorithm
 // https://mathcenter.oxford.emory.edu/site/cs171/shuntingYardAlgorithm/
 string infix_to_postfix_bool(const string& infix)
 {
 	char symbol;
-	std::map<char, unsigned short> pemdas = 
-	{
-		{'|', 0}, {'&', 1}, {'^', 2}, {'~', 3}
-	};
 	stack<char> ops;
 	string buffer = infix;
 	string postfix = "";
 
 	try
 	{
-		// while there is more to convert
-		while (buffer.size() > 0)
+		while (buffer.size() > 0) // while there is more to convert
 		{
-			// the symbol is the front of the string
-			symbol = buffer.front();
+			symbol = buffer.front(); // the symbol is the front of the string
 
 			switch (symbol)
 			{
-			case '(':
-				// push ( onto the stack
-				ops.push(symbol);
-
-				break;
-
+			case '(': ops.push(symbol); break;
 			case ')':
 				// while the top of the stack isn't (
 				while (ops.top() != '(')
 				{
-					// discard )
-					// get the top operator
-					symbol = ops.top();
+					symbol = ops.top(); // get the top operator
 
-					// push the symbol onto the postfix
-					postfix += symbol;
+					postfix += symbol; // push the symbol onto the postfix
 
-					// pop the top of the operator stack
-					ops.pop();
+					ops.pop(); // pop the top of the operator stack
 				}
 
-				// get rid of the (
-				ops.pop();
-
+				ops.pop(); // get rid of the (
 				break;
-
 			case '0': postfix += '0'; break;
-
 			case '1': postfix += '1'; break;
-
 			case '~': ops.push(symbol); break;
-
-			case '^':
-				// if the stack is empty
-				if (ops.empty()) ops.push(symbol);
-				// if the top of the stack is (
-				else if (ops.top() == '(') ops.push(symbol);
-				// if the top of the stack is more important than ^
-				else if (pemdas[symbol] > pemdas[ops.top()]) ops.push(symbol);
-				else
-				{
-					// while the operator on the top of the stack is more important
-					// or of similar importance, and the stack is not empty
-					while (pemdas[symbol] <= pemdas[ops.top()] && !ops.empty())
-					{
-						// write the operator to the 
-						postfix += ops.top();
-
-						ops.pop();
-					}
-
-					ops.push(symbol);
-				}
-
-				break;
-
-			case '&':
-				// if the stack is empty
-				if (ops.empty()) ops.push(symbol);
-				// if the top of the stack is (
-				else if (ops.top() == '(') ops.push(symbol);
-				// if the top of the stack is more important than ^
-				else if (pemdas[symbol] > pemdas[ops.top()]) ops.push(symbol);
-				else
-				{
-					// while the operator on the top of the stack is more important
-					// or of similar importance, and the stack is not empty
-					while (pemdas[symbol] <= pemdas[ops.top()] && !ops.empty())
-					{
-						// write the operator to the 
-						postfix += ops.top();
-
-						ops.pop();
-					}
-
-					ops.push(symbol);
-				}
-
-				break;
-
-			case '|':
-				// if the stack is empty
-				if (ops.empty()) ops.push(symbol);
-				// if the top of the stack is (
-				else if (ops.top() == '(') ops.push(symbol);
-				// if the top of the stack is more important than ^
-				else if (pemdas[symbol] > pemdas[ops.top()]) ops.push(symbol);
-				else
-				{
-					// while the operator on the top of the stack is more important
-					// or of similar importance, and the stack is not empty
-					while (!ops.empty())
-					{
-						if (pemdas[symbol] > pemdas[ops.top()])
-							break;
-						// write the operator to the 
-						postfix += ops.top();
-
-						ops.pop();
-					}
-
-					ops.push(symbol);
-				}
-
-				break;
-
+			case '^': compareAndPush(symbol, ops, postfix); break;
+			case '&': compareAndPush(symbol, ops, postfix); break;
+			case '|': compareAndPush(symbol, ops, postfix); break;
 			case ' ': break;
-
 			default:
 				string errMsg = "";
 				errMsg += symbol;
@@ -196,7 +188,6 @@ string infix_to_postfix_bool(const string& infix)
 			}
 
 			buffer = buffer.substr(1);
-
 		}
 		
 	}
@@ -213,5 +204,37 @@ string infix_to_postfix_bool(const string& infix)
 	}
 
 	return postfix;
+}
 
+// helper function for Dijkstra's algorithm UwU
+void compareAndPush(const char& symbol, stack<char>& ops, string& postfix)
+{
+	std::map<char, unsigned short> pemdas =
+	{
+		{'|', 0}, {'&', 1}, {'^', 2}, {'~', 3}
+	};
+
+	// if the stack is empty
+	if (ops.empty()) ops.push(symbol);
+	// if the top of the stack is (
+	else if (ops.top() == '(') ops.push(symbol);
+	// if the top of the stack is more important than ^
+	else if (pemdas[symbol] > pemdas[ops.top()]) ops.push(symbol);
+	else
+	{
+		// while the operator on the top of the stack is more
+		// important or of similar importance, and the stack is
+		// not empty
+		while (pemdas[symbol] <= pemdas[ops.top()] && !ops.empty())
+		{
+			// write the operator to the 
+			postfix += ops.top();
+
+			ops.pop();
+		}
+
+		ops.push(symbol);
+	}
+
+	return;
 }
