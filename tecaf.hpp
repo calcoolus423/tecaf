@@ -27,9 +27,7 @@
 const long double E = std::exp(1);
 
 
-/****************\
-	prototypes
-\****************/
+	/* prototypes */
 
 // purpose: determines if a string can be expressed as a number
 // requires: a string
@@ -48,9 +46,7 @@ void print(adt data) { std::cout << data << '\n'; }
 void print() { std::cout << '\n'; }
 
 
-/*****************\
-	definitions
-\*****************/
+	/* definitions */
 
 // written by Gemini
 bool isNumber(const std::string& str)
