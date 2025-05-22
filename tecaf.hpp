@@ -18,10 +18,7 @@
 
 
 #include "expression.hpp"
-#include <iostream>
 #include "realfx.hpp"
-#include <sstream>
-#include <string>
 
 
 // calculate euler's constant
@@ -41,14 +38,3 @@ void print(adt data) { std::cout << data << '\n'; }
 // returns: nothing
 void print() { std::cout << '\n'; }
 
-
-	/* definitions */
-
-// written by Gemini
-bool isNumber(const std::string& str)
-{
-	std::istringstream iss(str);
-	double d;
-	iss >> std::noskipws >> d;
-	return iss.eof() && !iss.fail();
-}

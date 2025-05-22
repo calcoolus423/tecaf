@@ -5,6 +5,7 @@
 #include <exception>
 #include <iostream>
 #include <map>
+#include <sstream>
 #include <stack>
 #include <string>
 
@@ -20,16 +21,6 @@ using std::string;
 // requires: a string
 // returns: a boolean
 bool isNumber(const std::string&);
-
-// purpose: evaluates a boolean expression
-// requires: a string i.e. the boolean expression in postfix notation
-// returns: a boolean i.e. the result of the expression
-bool eval_boolExp(const string&);
-
-// purpose: converts an expression of bools from infix to postfix notation
-// requires: a string i.e. an expression in infix notation
-// returns: a string i.e. an expression on postfix notation
-string infix_to_postfix_bool(const string&);
 
 
 		/* classes */
@@ -48,12 +39,16 @@ protected:
 
 		/* member variables */
 
-	inline static const std::map<char, unsigned short> pemdas
-		= { {'|', 0}, {'&', 1}, {'^', 2}, {'~', 3},
-			{'+', 0}, {'-', 0}, {'*', 1}, {'/', 1}, {'^', 2} };
+	// assigns importance to each operator
+	inline static const std::map<char, unsigned short> PEMDAS
+		= { {'(', 0}, {'|', 1}, {'&', 2}, {'^', 3}, {'~', 4},
+			{'+', 1}, {'-', 1}, {'*', 2}, {'/', 2} };
 	
+	// the result of the expression
+	// nullptr means the expression has not been evaluated yet
 	adt* result = nullptr;
 
+	// the expression in postfix notation
 	string expression;
 
 		/* member functions */
@@ -87,12 +82,28 @@ protected:
 
 public:
 
+		/* destructor */
+	
+	virtual ~Expression() { delete result; result = nullptr; }
+
 		/* member functions */
 
 	// purpose: evaluates the expression
 	// requires: nothing
 	// returns: an adt i.e. the result
 	virtual adt evaluate() = 0;
+
+	// purpose: gets the expression
+	// requires: can pass in "infix", "prefix", or "postfix" to get the
+	//	expression in one of those formats, by default "infix"
+	// returns: a string i.e. the expression
+	virtual string getExpression(const string& = "infix") = 0;
+
+	// purpose: changes the expression to something new
+	// requires: a string i.e. the new expression, and a string i.e. the
+	//	format either "infix", "prefix", or "postfix", by default "infix"
+	// returns: a string i.e. the expression
+	virtual void setExpression(const string&, const string & = "infix") = 0;
 
 };
 
@@ -141,7 +152,9 @@ public:
 
 	// parametrized constructor
 	// takes in a string i.e. an expression in infix notation
-	boolExp(const string&);
+	//	and the format of the expression being passed in, must be "infix",
+	//	"prefix", or "postfix"
+	boolExp(const string&, const string& = "infix");
 
 	// copy constructor
 	boolExp(const boolExp&);
@@ -152,6 +165,18 @@ public:
 	// requires: nothing
 	// returns: a boolean value i.e. the result
 	bool evaluate() override;
+
+	// purpose: gets the expression
+	// requires: can pass in "infix", "prefix", or "postfix" to get the
+	//	expression in one of those formats, by default "infix"
+	// returns: a string i.e. the expression
+	string getExpression(const string & = "infix");
+
+	// purpose: changes the expression to something new
+	// requires: a string i.e. the new expression, and a string i.e. the
+	//	format either "infix", "prefix", or "postfix", by default "infix"
+	// returns: a string i.e. the expression
+	void setExpression(const string&, const string & = "infix");
 
 };
 
@@ -167,7 +192,7 @@ boolExp::boolExp()
 }
 
 // parametrized constructor
-boolExp::boolExp(const string& infix)
+boolExp::boolExp(const string& infix, const string& format)
 {
 	expression = infix_to_postfix(infix);
 }
@@ -193,13 +218,13 @@ void boolExp::compareAndPush
 	// if the top of the stack is (
 	else if (ops.top() == '(') ops.push(symbol);
 	// if the top of the stack is more important than ^
-	else if (pemdas.at(symbol) > pemdas.at(ops.top())) ops.push(symbol);
+	else if (PEMDAS.at(symbol) > PEMDAS.at(ops.top())) ops.push(symbol);
 	else
 	{
 		// while the operator on the top of the stack is more
 		// important or of similar importance, and the stack is
 		// not empty
-		while (pemdas.at(symbol) <= pemdas.at(ops.top()) && !ops.empty())
+		while (PEMDAS.at(symbol) <= PEMDAS.at(ops.top()) && !ops.empty())
 		{
 			// write the operator to the 
 			postfix += ops.top();
@@ -336,6 +361,7 @@ void boolExp::getAndEval(stack<bool>& vals, const char& op)
 	vals.push(eval_simple_exp(holder, op));
 }
 
+
 /* public */
 
 // evaluate the full expression
@@ -350,7 +376,7 @@ bool boolExp::evaluate()
 	{
 		if (expression == "")
 		{
-			throw std::logic_error("String must not be empty");
+			//throw std::invalid_argument("Expression is empty");
 			return false;
 		}
 
@@ -384,4 +410,54 @@ bool boolExp::evaluate()
 		return false;
 	}
 
+}
+
+// return the Expression's expression as a string in a given format
+string boolExp::getExpression(const string& format)
+{
+	if (format == "postfix") // if the user wants postfix format
+	{
+		return expression;
+	}
+	else if (format == "infix") // if the user wants infix format
+	{
+		// postfix -> infix implementation
+		return "";
+	}
+	else if (format == "prefix") // if the user wants prefix format
+	{
+		// postfix -> prefix implementation
+		return "";
+	}
+
+}
+
+// set the expression that is in a given format
+void boolExp::setExpression(const string& xpr, const string& format)
+{
+	if (format == "postfix")
+	{
+		expression = xpr;
+	}
+	else if (format == "infix")
+	{
+		expression = infix_to_postfix(xpr);
+	}
+	else if (format == "prefix")
+	{
+		// prefix -> postfix implementation
+	}
+
+}
+
+
+	/* definitions */
+
+// written by Gemini
+bool isNumber(const std::string& str)
+{
+	std::istringstream iss(str);
+	double d;
+	iss >> std::noskipws >> d;
+	return iss.eof() && !iss.fail();
 }
