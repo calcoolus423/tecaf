@@ -80,6 +80,15 @@ protected:
 	// returns: a string i.e. an expression in postfix notation
 	virtual string infix_to_postfix(const string&) = 0;
 
+	// postfix -> infix implementation
+	virtual string postfix_to_infix(const string&) = 0;
+
+	// postfix -> prefix implementation
+	virtual string postfix_to_prefix(const string&) = 0;
+
+	// prefix -> postfix implementation
+	virtual string prefix_to_postfix(const string&) = 0;
+
 public:
 
 		/* destructor */
@@ -136,10 +145,25 @@ protected:
 	// returns: nothing, but adjusts the stack
 	void getAndEval(stack<bool>&, const char&) override;
 
-	// purpose: converts an expression from infix format to postfix format
+	// purpose: converts an expression from infix to postfix format
 	// requires: a string i.e. the expression in infix format
 	// returns: a string i.e. the expression in postfix format
 	string infix_to_postfix(const string&) override;
+
+	// purpose: converts an expression from postfix to infix format
+	// requires: a string i.e. the expression in postfix format
+	// returns: a string i.e. the expression in infix format
+	string postfix_to_infix(const string&) override;
+
+	// purpose: converts an expression from postfix to prefix format
+	// requires: a string i.e. the expression in postfix format
+	// returns: a string i.e. the expression in prefix format
+	string postfix_to_prefix(const string&) override;
+
+	// purpose: converts an expression from prefix to postfix format
+	// requires: a string i.e. the expression in prefix format
+	// returns: a string i.e. the expression in postfix format
+	string prefix_to_postfix(const string&) override;
 
 public:
 
@@ -226,12 +250,13 @@ void boolExp::compareAndPush
 		// not empty
 		while (PEMDAS.at(symbol) <= PEMDAS.at(ops.top()) && !ops.empty())
 		{
-			// write the operator to the 
+			// write the operator to the postfix string
 			postfix += ops.top();
-
+			// pop the operator stack
 			ops.pop();
 		}
 
+		// once we're done with the loop, push the current op onto the stack
 		ops.push(symbol);
 	}
 
@@ -302,18 +327,15 @@ string boolExp::infix_to_postfix(const string& infix)
 				while (ops.top() != '(')
 				{
 					symbol = ops.top(); // get the top operator
-
 					postfix += symbol; // push the symbol onto the postfix
-
 					ops.pop(); // pop the top of the operator stack
 				}
-
 				ops.pop(); // get rid of the (
 				break;
-			case '0': postfix += '0'; break;
-			case '1': postfix += '1'; break;
+			case '0': postfix += '0'; break; // append 0 to the string
+			case '1': postfix += '1'; break; // append 1 to the string
 			case '~': ops.push(symbol); break;
-			case '^': case '&': case '|':
+			case '^': case '&': case '|': // order of operations
 				compareAndPush(symbol, ops, postfix);
 				break;
 			case ' ': break;
@@ -343,6 +365,11 @@ string boolExp::infix_to_postfix(const string& infix)
 	}
 
 	return postfix;
+}
+
+string postfix_to_infix(const string&)
+{
+
 }
 
 void boolExp::getAndEval(stack<bool>& vals, const char& op)
