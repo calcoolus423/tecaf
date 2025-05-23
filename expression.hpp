@@ -626,17 +626,29 @@ string boolExp::getExpression(const string& format)
 // set the expression that is in a given format
 void boolExp::setExpression(const string& xpr, const string& format)
 {
-	if (format == "postfix")
+	try
 	{
-		expression = xpr;
+		if (format == "postfix")
+		{
+			expression = xpr;
+		}
+		else if (format == "infix")
+		{
+			expression = infix_to_postfix(xpr);
+		}
+		else if (format == "prefix")
+		{
+			expression = prefix_to_postfix(xpr);
+		}
+		else
+		{
+			throw std::invalid_argument("Input must be"
+				"\"postfix\", \"infix\", or \"prefix\"\n");
+		}
 	}
-	else if (format == "infix")
+	catch (const std::invalid_argument& e)
 	{
-		expression = infix_to_postfix(xpr);
-	}
-	else if (format == "prefix")
-	{
-		// prefix -> postfix implementation
+		std::cerr << e.what();
 	}
 
 }
