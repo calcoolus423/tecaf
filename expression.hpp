@@ -9,6 +9,7 @@
 #include <sstream>
 #include <stack>
 #include <string>
+#include <vector>
 
 
 using std::stack;
@@ -99,7 +100,7 @@ public:
 
 		/* destructor */
 	
-	virtual ~Expression() { }
+	virtual ~Expression() { delete result; result = nullptr; }
 
 		/* member functions */
 
@@ -125,6 +126,11 @@ public:
 
 	/* boolExp */
 
+// purpose: represents a boolean expression
+// invariants: expression must be boolean and have operations &, |, ^, or ~
+// data members:
+//	'result' is a pointer to the expression's result
+//	'expression' is a string that represents the actual expression
 class boolExp : public Expression<bool>
 {
 protected:
@@ -137,7 +143,7 @@ protected:
 	// requires: a char i.e. the operator, a stack that holds the current
 	//	operators, and a string i.e. the postfix expression
 	// returns: nothing, but pops elements onto the string
-	void compareAndPush(const char&, stack<char>&, string&);
+	void compareAndPush(const char&, stack<char>&, string&) override;
 
 	// purpose: evaluates a boolean expression with two inputs
 	// requires: an array of two bools to evaluate,
@@ -188,8 +194,6 @@ public:
 
 	// copy constructor
 	boolExp(const boolExp&);
-
-	~boolExp() override { delete result; result = nullptr; }
 	
 		/* member functions */
 
@@ -213,9 +217,9 @@ public:
 };
 
 
-		/* boolExp */
+			/* boolExp */
 
-	/* constructors */
+		/* constructors */
 
 // default constructor
 boolExp::boolExp()
@@ -237,9 +241,9 @@ boolExp::boolExp(const boolExp& other)
 }
 
 
-	/* methods */
+		/* methods */
 
-/* protected */
+	/* protected */
 
 // helper function for Dijkstra's algorithm UwU
 void boolExp::compareAndPush
@@ -533,7 +537,7 @@ void boolExp::getAndEval(stack<bool>& vals, const char& op)
 }
 
 
-/* public */
+	/* public */
 
 // evaluate the full expression
 bool boolExp::evaluate()
