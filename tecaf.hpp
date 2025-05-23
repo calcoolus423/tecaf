@@ -10,31 +10,22 @@
 *   coding experience. Primarily centered around mathematical functions,      *
 *   expressions, and evaluations, this library allows for user-creation and   *
 *   analysis of numerical/analystical functions.                              *
-*                                                                             *
+*   This file mostly acts as a wrapper for other hpp files.                   *
+*	Written in C++20.
 \*****************************************************************************/
 
 #pragma once
 
 
 #include "expression.hpp"
-#include <iostream>
 #include "realfx.hpp"
-#include <sstream>
-#include <string>
 
 
 // calculate euler's constant
 const long double E = std::exp(1);
 
 
-/****************\
-	prototypes
-\****************/
-
-// purpose: determines if a string can be expressed as a number
-// requires: a string
-// returns: a boolean
-bool isNumber(const std::string&);
+	/* prototypes */
 
 // purpose: prints the data to the console and breaks the line
 // requires: anything that can be printed
@@ -47,16 +38,3 @@ void print(adt data) { std::cout << data << '\n'; }
 // returns: nothing
 void print() { std::cout << '\n'; }
 
-
-/*****************\
-	definitions
-\*****************/
-
-// written by Gemini
-bool isNumber(const std::string& str)
-{
-	std::istringstream iss(str);
-	double d;
-	iss >> std::noskipws >> d;
-	return iss.eof() && !iss.fail();
-}

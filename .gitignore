@@ -361,3 +361,7 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+/tecaf.sln
+/tecaf.sln
+/tecaf.vcxproj
+/tecaf.vcxproj.filters
