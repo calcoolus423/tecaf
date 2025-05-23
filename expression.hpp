@@ -1,6 +1,7 @@
 #pragma once
 
 
+#include <algorithm>
 #include <array>
 #include <exception>
 #include <iostream>
@@ -10,7 +11,6 @@
 #include <string>
 
 
-using std::cout;
 using std::stack;
 using std::string;
 
@@ -80,20 +80,26 @@ protected:
 	// returns: a string i.e. an expression in postfix notation
 	virtual string infix_to_postfix(const string&) = 0;
 
-	// postfix -> infix implementation
+	// purpose: converts an expression from postfix to infix notation
+	// requires: a string i.e. an expression in postfix notation
+	// returns: a string i.e. an expression in infix notation
 	virtual string postfix_to_infix(const string&) = 0;
 
-	// postfix -> prefix implementation
+	// purpose: converts an expression from postfix to prefix notation
+	// requires: a string i.e. an expression in postfix notation
+	// returns: a string i.e. an expression in prefix notation
 	virtual string postfix_to_prefix(const string&) = 0;
 
-	// prefix -> postfix implementation
+	// purpose: converts an expression from prefix to postfix notation
+	// requires: a string i.e. an expression in prefix notation
+	// returns: a string i.e. an expression in postfix notation
 	virtual string prefix_to_postfix(const string&) = 0;
 
 public:
 
 		/* destructor */
 	
-	virtual ~Expression() { delete result; result = nullptr; }
+	virtual ~Expression() { }
 
 		/* member functions */
 
@@ -182,6 +188,8 @@ public:
 
 	// copy constructor
 	boolExp(const boolExp&);
+
+	~boolExp() override { delete result; result = nullptr; }
 	
 		/* member functions */
 
@@ -367,10 +375,146 @@ string boolExp::infix_to_postfix(const string& infix)
 	return postfix;
 }
 
-string postfix_to_infix(const string&)
+string boolExp::postfix_to_infix(const string& post)
 {
+	std::array<char, 2> temp;
+	stack<char> vals;
+	string in = "";
 
+	for (const char& symbol : post)
+	{
+		switch (symbol)
+		{
+		case '0': case '1':
+			vals.push(symbol);
+			break;
+		case '&': case '|': case '^':
+			if (in.size() == 0)
+			{
+				temp[1] = vals.top();
+				vals.pop();
+				temp[0] = vals.top();
+				vals.pop();
+
+				in = "(";
+				in += temp[0];
+				in += symbol;
+				in += temp[1];
+				in += ')';
+			}
+			else
+			{
+				in = '(' + in;
+				in += symbol + vals.top();
+				vals.pop();
+			}
+			break;
+		}
+
+	}
+
+	return in;
 }
+
+// https://www.prepbytes.com/blog/stacks/postfix-to-prefix-conversion/
+string boolExp::postfix_to_prefix(const string& post)
+{
+	stack<string> pre;
+	string mini;
+
+	for (const char& symbol: post)
+	{
+		mini = "";
+		switch (symbol)
+		{
+		case '0': case '1':
+			mini += symbol;
+			// push it onto the stack
+			pre.push(mini);
+			break;
+		case '&': case '|': case '^':
+			mini += symbol;
+			for (int i = 0; i < 2; i++)
+			{
+				mini += pre.top();
+				pre.pop();
+			}
+			pre.push(mini);
+			break;
+		case '~':
+			mini += symbol;
+			mini += pre.top();
+			pre.pop();
+			pre.push(mini);
+			break;
+		default:
+			break;
+		}
+
+	}
+
+	if(!pre.empty())
+	{
+		mini = pre.top();
+
+		return mini;
+	}
+	else
+	{
+		return "";
+	}
+};
+
+// https://www.prepbytes.com/blog/stacks/conversion-of-prefix-to-postfix-notation/
+string boolExp::prefix_to_postfix(const string& pre)
+{ 
+	stack<string> post;
+	string erp;
+	string mini;
+
+	// reverse the string
+	erp = pre;
+	std::reverse(erp.begin(), erp.end());
+
+	for (const char& symbol : erp)
+	{
+		mini = "";
+		switch (symbol)
+		{
+		case '0': case '1':
+			mini += symbol;
+			post.push(mini);
+			break;
+		case '~':
+			mini += post.top();
+			post.pop();
+			mini += symbol;
+			post.push(mini);
+			break;
+		case '&': case '|': case '^':
+			for (int i = 0; i < 2; i++)
+			{
+				mini += post.top();
+				post.pop();
+			}
+			mini += symbol;
+			post.push(mini);
+			break;
+		default: break;
+		}
+
+	}
+
+	if (!post.empty())
+	{
+		return post.top();
+	}
+	else
+	{
+		return "";
+	}
+
+};
 
 void boolExp::getAndEval(stack<bool>& vals, const char& op)
 {
@@ -398,43 +542,51 @@ bool boolExp::evaluate()
 	stack<bool> vals;
 	string xpr = expression;
 
-	// if the string is empty
-	try
+	if (result)
+		return *result;
+	else
 	{
-		if (expression == "")
+		// if the string is empty
+		try
 		{
-			//throw std::invalid_argument("Expression is empty");
+			if (expression == "")
+			{
+				//throw std::invalid_argument("Expression is empty");
+				return false;
+			}
+
+			for (char& symbol : xpr)
+			{
+				switch (symbol)
+				{
+				case '0': vals.push(false); break;
+				case '1': vals.push(true); break;
+				case '~':
+					temp = vals.top();
+					vals.pop();
+					vals.push(!temp);
+					break;
+				case '&': case '|': case '^':
+					getAndEval(vals, symbol);
+					break;
+				default:
+					throw std::invalid_argument
+						("Invalid char in postfix expression\n");
+					break;
+				}
+
+			}
+
+			result = new bool(vals.top());
+			
+			return *result;
+		}
+		catch (const std::invalid_argument& e)
+		{
+			std::cerr << e.what();
 			return false;
 		}
 
-		for (char& symbol : xpr)
-		{
-			switch (symbol)
-			{
-			case '0': vals.push(false); break;
-			case '1': vals.push(true); break;
-			case '~':
-				temp = vals.top();
-				vals.pop();
-				vals.push(!temp);
-				break;
-			case '&': case '|': case '^':
-				getAndEval(vals, symbol);
-				break;
-			default:
-				throw std::invalid_argument
-					("Invalid char in postfix expression\n");
-				break;
-			}
-
-		}
-
-		return vals.top();
-	}
-	catch (const std::invalid_argument& e)
-	{
-		std::cerr << e.what();
-		return false;
 	}
 
 }
@@ -442,19 +594,31 @@ bool boolExp::evaluate()
 // return the Expression's expression as a string in a given format
 string boolExp::getExpression(const string& format)
 {
-	if (format == "postfix") // if the user wants postfix format
+	try
 	{
-		return expression;
+		if (format == "postfix") // if the user wants postfix format
+		{
+			return expression;
+		}
+		else if (format == "infix") // if the user wants infix format
+		{
+
+			return postfix_to_infix(expression);
+		}
+		else if (format == "prefix") // if the user wants prefix format
+		{
+			return postfix_to_prefix(expression);
+		}
+		else
+		{
+			throw std::invalid_argument("Input of getExpression must be"
+				"\"postfix\", \"infix\", or \"prefix\"\n");
+		}
+
 	}
-	else if (format == "infix") // if the user wants infix format
+	catch (const std::invalid_argument& e)
 	{
-		// postfix -> infix implementation
-		return "";
-	}
-	else if (format == "prefix") // if the user wants prefix format
-	{
-		// postfix -> prefix implementation
-		return "";
+		std::cerr << e.what();
 	}
 
 }
