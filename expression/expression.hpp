@@ -1,7 +1,7 @@
 #pragma once
 
 
-#include <algorithm>
+// #include <algorithm>
 #include <array>
 #include <exception>
 #include <iostream>
@@ -59,7 +59,7 @@ protected:
 	// requires: a char i.e. the operator, a stack that holds the current
 	//	operators, and a string i.e. the postfix expression
 	// returns: nothing, but pops elements onto the string
-	virtual void compareAndPush(const char&, stack<char>&, string&) = 0;
+	virtual void compareAndPush(const char&, stack<char>&, string&);
 
 	// purpose: evaluates an expression with two inputs
 	// requires: an array of two values to evaluate,
@@ -99,7 +99,7 @@ public:
 
 		/* destructor */
 	
-	virtual ~Expression() { }
+	virtual ~Expression() { delete result; result = nullptr; }
 
 		/* member functions */
 
@@ -125,19 +125,16 @@ public:
 
 	/* boolExp */
 
+// purpose: represents a boolean expression
+// invariants: expression must be boolean and uses operations &, |, ^, or ~
+// data members:
+//	'result' is a pointer to the expression's result
+//	'expression' is a string that represents the actual expression
 class boolExp : public Expression<bool>
 {
 protected:
 
 		/* member functions */
-
-	// purpose: helper function for Dijkstra's algorithm, compares the
-	//	current operator with the stack wrt the order of operations and pushes
-	//	them onto the string i.e. the postfix expression
-	// requires: a char i.e. the operator, a stack that holds the current
-	//	operators, and a string i.e. the postfix expression
-	// returns: nothing, but pops elements onto the string
-	void compareAndPush(const char&, stack<char>&, string&);
 
 	// purpose: evaluates a boolean expression with two inputs
 	// requires: an array of two bools to evaluate,
@@ -178,7 +175,7 @@ public:
 	// default constructor
 	// sets the expression to the additive identity,
 	//	and consequentially the result too
-	boolExp();
+	boolExp() { expression = "0"; }
 
 	// parametrized constructor
 	// takes in a string i.e. an expression in infix notation
@@ -188,8 +185,6 @@ public:
 
 	// copy constructor
 	boolExp(const boolExp&);
-
-	~boolExp() override { delete result; result = nullptr; }
 	
 		/* member functions */
 
@@ -213,20 +208,70 @@ public:
 };
 
 
-		/* boolExp */
+	/* realExp */
 
-	/* constructors */
-
-// default constructor
-boolExp::boolExp()
+// purpose: represents a real-valued expression
+// invariants: expression must be representable as real numbers and uses
+//	operations +, -, *, or /
+// data members:
+//	'result' is a pointer to the expression's result
+//	'expression' is a string that represents the actual expression
+class realExp : public Expression<long double>
 {
-	expression = "";
-}
+protected:
+
+		/* member functions */
+
+	// purpose: evaluates a real expression with two inputs
+	// requires: an array of two long doubles to evaluate,
+	//	and a char i.e. the operator
+	// returns: a long double that is the result
+	long double eval_simple_exp
+	(const std::array<long double, 2>&, const char&) const override;
+
+public:
+
+		/* constructors */
+
+	// default constructor
+	// sets the expression to the additive identity
+	realExp() { expression = "0"; }
+
+	// parametrized constructor
+	// takes in a string i.e. an expression in infix notation
+	//	and the format of the expression being passed in, must be "infix",
+	//	"prefix", or "postfix", but is "infix" by default
+	realExp(const string&, const string& = "infix");
+
+	// copy constructor
+	realExp(const realExp&);
+};
+
+
+			/* boolExp */
+
+		/* constructors */
 
 // parametrized constructor
-boolExp::boolExp(const string& infix, const string& format)
+boolExp::boolExp(const string& xpr, const string& format)
 {
-	expression = infix_to_postfix(infix);
+	try
+	{
+		if (format == "infix")
+			expression = infix_to_postfix(xpr);
+		else if (format == "postfix")
+			expression = xpr;
+		else if (format == "prefix")
+			expression = prefix_to_postfix(xpr);
+		else
+			throw std::invalid_argument("Format must be 'infix', 'prefix' or"
+				"'postfix'\n");
+	}
+	catch (const std::invalid_argument& e)
+	{
+		std::cerr << e.what();
+	}
+
 }
 
 // copy constructor
@@ -237,12 +282,13 @@ boolExp::boolExp(const boolExp& other)
 }
 
 
-	/* methods */
+		/* methods */
 
-/* protected */
+	/* protected */
 
 // helper function for Dijkstra's algorithm UwU
-void boolExp::compareAndPush
+template <class adt>
+void Expression<adt>::compareAndPush
 (const char& symbol, stack<char>& ops, string& postfix)
 {
 	// if the stack is empty
@@ -375,45 +421,53 @@ string boolExp::infix_to_postfix(const string& infix)
 	return postfix;
 }
 
+// https://www.prepbytes.com/blog/stacks/conversion-of-postfix-expression-to-infix-expression/
 string boolExp::postfix_to_infix(const string& post)
 {
-	std::array<char, 2> temp;
-	stack<char> vals;
-	string in = "";
+	stack<string> inf;
+	string mini;
 
 	for (const char& symbol : post)
 	{
+		mini = "";
 		switch (symbol)
 		{
 		case '0': case '1':
-			vals.push(symbol);
+			mini += symbol;
+			inf.push(mini);
 			break;
 		case '&': case '|': case '^':
-			if (in.size() == 0)
-			{
-				temp[1] = vals.top();
-				vals.pop();
-				temp[0] = vals.top();
-				vals.pop();
+			mini += inf.top();
+			inf.pop();
 
-				in = "(";
-				in += temp[0];
-				in += symbol;
-				in += temp[1];
-				in += ')';
-			}
-			else
-			{
-				in = '(' + in;
-				in += symbol + vals.top();
-				vals.pop();
-			}
+			mini = symbol + mini;
+
+			mini = inf.top() + mini;
+			inf.pop();
+
+			mini = '(' + mini + ')';
+			inf.push(mini);
 			break;
+		case '~':
+			mini = symbol;
+			mini += inf.top();
+			inf.pop();
+			inf.push(mini);
+			break;
+		default: break;
 		}
 
 	}
 
-	return in;
+	if (!inf.empty())
+	{
+		return inf.top();
+	}
+	else
+	{
+		return "";
+	}
+
 }
 
 // https://www.prepbytes.com/blog/stacks/postfix-to-prefix-conversion/
@@ -422,7 +476,7 @@ string boolExp::postfix_to_prefix(const string& post)
 	stack<string> pre;
 	string mini;
 
-	for (const char& symbol: post)
+	for (const char& symbol : post)
 	{
 		mini = "";
 		switch (symbol)
@@ -433,12 +487,12 @@ string boolExp::postfix_to_prefix(const string& post)
 			pre.push(mini);
 			break;
 		case '&': case '|': case '^':
-			mini += symbol;
 			for (int i = 0; i < 2; i++)
 			{
-				mini += pre.top();
+				mini = pre.top() + mini;
 				pre.pop();
 			}
+			mini = symbol + mini;
 			pre.push(mini);
 			break;
 		case '~':
@@ -447,17 +501,14 @@ string boolExp::postfix_to_prefix(const string& post)
 			pre.pop();
 			pre.push(mini);
 			break;
-		default:
-			break;
+		default: break;
 		}
 
 	}
 
 	if(!pre.empty())
 	{
-		mini = pre.top();
-
-		return mini;
+		return pre.top();
 	}
 	else
 	{
@@ -533,7 +584,7 @@ void boolExp::getAndEval(stack<bool>& vals, const char& op)
 }
 
 
-/* public */
+	/* public */
 
 // evaluate the full expression
 bool boolExp::evaluate()
@@ -653,6 +704,16 @@ void boolExp::setExpression(const string& xpr, const string& format)
 
 }
 
+
+			/* realExp */
+
+		/* constructors */
+
+// parametrized constructor
+realExp::realExp(const string& xpr, const string& format)
+{
+
+}
 
 	/* definitions */
 
