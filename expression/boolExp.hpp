@@ -57,9 +57,9 @@ public:
 
 	/* constructors */
 
-// default constructor
-// sets the expression to the additive identity,
-//	and consequentially the result too
+	// default constructor
+	// sets the expression to the additive identity,
+	//	and consequentially the result too
 	boolExp() { expression = "0"; }
 
 	// parametrized constructor
