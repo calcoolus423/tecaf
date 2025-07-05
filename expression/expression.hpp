@@ -1,7 +1,7 @@
 #pragma once
 
 
-// #include <algorithm>
+#include <algorithm>
 #include <array>
 #include <exception>
 #include <iostream>
@@ -9,13 +9,14 @@
 #include <sstream>
 #include <stack>
 #include <string>
+#include <vector>
 
 
 using std::stack;
 using std::string;
 
 
-	/* prototypes */
+/* prototypes */
 
 // purpose: determines if a string can be expressed as a number
 // requires: a string
@@ -23,9 +24,9 @@ using std::string;
 bool isNumber(const std::string&);
 
 
-		/* classes */
+/* classes */
 
-	/* Expression */
+/* Expression */
 
 // purpose: an abstract class that represents expressions
 // invariants: none
@@ -37,13 +38,13 @@ class Expression
 {
 protected:
 
-		/* member variables */
+	/* member variables */
 
-	// assigns importance to each operator
+// assigns importance to each operator
 	inline static const std::map<char, unsigned short> PEMDAS
 		= { {'(', 0}, {'|', 1}, {'&', 2}, {'^', 3}, {'~', 4},
 			{'+', 1}, {'-', 1}, {'*', 2}, {'/', 2} };
-	
+
 	// the result of the expression
 	// nullptr means the expression has not been evaluated yet
 	adt* result = nullptr;
@@ -51,15 +52,15 @@ protected:
 	// the expression in postfix notation
 	string expression;
 
-		/* member functions */
+	/* member functions */
 
-	// purpose: helper function for Dijkstra's algorithm, compares the
-	//	current operator with the stack wrt the order of operations and pushes
-	//	them onto the string i.e. the postfix expression
-	// requires: a char i.e. the operator, a stack that holds the current
-	//	operators, and a string i.e. the postfix expression
-	// returns: nothing, but pops elements onto the string
-	virtual void compareAndPush(const char&, stack<char>&, string&);
+// purpose: helper function for Dijkstra's algorithm, compares the
+//	current operator with the stack wrt the order of operations and pushes
+//	them onto the string i.e. the postfix expression
+// requires: a char i.e. the operator, a stack that holds the current
+//	operators, and a string i.e. the postfix expression
+// returns: nothing, but pops elements onto the string
+	virtual void compareAndPush(const char&, stack<char>&, string&) = 0;
 
 	// purpose: evaluates an expression with two inputs
 	// requires: an array of two values to evaluate,
@@ -97,22 +98,22 @@ protected:
 
 public:
 
-		/* destructor */
-	
+	/* destructor */
+
 	virtual ~Expression() { delete result; result = nullptr; }
 
-		/* member functions */
+	/* member functions */
 
-	// purpose: evaluates the expression
-	// requires: nothing
-	// returns: an adt i.e. the result
+// purpose: evaluates the expression
+// requires: nothing
+// returns: an adt i.e. the result
 	virtual adt evaluate() = 0;
 
 	// purpose: gets the expression
 	// requires: can pass in "infix", "prefix", or "postfix" to get the
 	//	expression in one of those formats, by default "infix"
 	// returns: a string i.e. the expression
-	virtual string getExpression(const string& = "infix") = 0;
+	virtual string getExpression(const string & = "infix") = 0;
 
 	// purpose: changes the expression to something new
 	// requires: a string i.e. the new expression, and a string i.e. the
@@ -121,42 +122,6 @@ public:
 	virtual void setExpression(const string&, const string & = "infix") = 0;
 
 };
-
-
-		/* member functions */
-
-	/* protected */
-
-// helper function for Dijkstra's algorithm UwU
-template <class adt>
-void Expression<adt>::compareAndPush
-(const char& symbol, stack<char>& ops, string& postfix)
-{
-	// if the stack is empty
-	if (ops.empty()) ops.push(symbol);
-	// if the top of the stack is (
-	else if (ops.top() == '(') ops.push(symbol);
-	// if the top of the stack is more important than ^
-	else if (PEMDAS.at(symbol) > PEMDAS.at(ops.top())) ops.push(symbol);
-	else
-	{
-		// while the operator on the top of the stack is more
-		// important or of similar importance, and the stack is
-		// not empty
-		while (PEMDAS.at(symbol) <= PEMDAS.at(ops.top()) && !ops.empty())
-		{
-			// write the operator to the postfix string
-			postfix += ops.top();
-			// pop the operator stack
-			ops.pop();
-		}
-
-		// once we're done with the loop, push the current op onto the stack
-		ops.push(symbol);
-	}
-
-	return;
-}
 
 
 	/* definitions */
